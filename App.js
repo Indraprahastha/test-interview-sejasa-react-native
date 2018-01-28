@@ -1,16 +1,23 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from 'react';
 import {
   Platform,
   StyleSheet,
   Text,
-  View
+  View,
+  AsyncStorage
 } from 'react-native';
+
+import { Provider } from 'react-redux'
+import { connect } from 'react-redux'
+
+import store from './store/index'
+
+import { TabNavigator, StackNavigator, DrawerNavigator } from 'react-navigation'
+
+import HomeBeforeRegister from './components/HomeBeforeRegister'
+import HomeAfterRegister from './components/HomeAfterRegister'
+import NilaiTukar from './components/NilaiTukar'
+import Setting from './components/Setting'
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -19,39 +26,59 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-export default class App extends Component<{}> {
+// const BeforeRegister = StackNavigator ({
+//   HomeBeforeRegister: { screen: HomeBeforeRegister }
+// })
+
+const AfterRegister = TabNavigator ({
+  Rates: { screen: HomeAfterRegister },
+  NilaiTukar: { screen: NilaiTukar },
+  Setting: { screen: Setting }
+})
+
+
+class App extends Component<{}> {
+  constructor (props) {
+    super(props)
+    this.state = {
+      indikator: false,
+    }
+  }
+
+  componentWillMount () {
+    AsyncStorage.getItem('dataPengguna').then((data) => {
+      // this.setState({indikator: null})
+      this.setState({indikator: JSON.parse(data)})
+      // alert(data)
+      // if (data) {
+      //   console.log("fuckyou", data);
+      //   this.props.setId({_id: data})
+      // } else {
+      //   this.props.setId({})
+      // }
+    }).catch((reason) => {
+      // console.log(reason);
+    })
+  }
+
+  registerSukses () {
+    this.setState({indikator: !this.state.indikator})
+  }
+
   render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
-      </View>
-    );
+    // alert('aman')
+    if (this.state.indikator) {
+      return (<Provider store={store}><AfterRegister /></Provider>)
+    } else if (this.state.indikator === null) {
+      return (<Provider store={store}><HomeBeforeRegister registerSukses={() => this.registerSukses()}/></Provider>)
+    } else {
+      return (<View></View>)
+    }
   }
 }
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
 });
+
+export default App
